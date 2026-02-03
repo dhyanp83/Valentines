@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Renée 💕 Be My Valentine</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background-color: #ffd1dc;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Comic Sans MS', 'Trebuchet MS', cursive;
+      overflow: hidden;
+    }
+
+    /* Burger pattern background */
+    body::before {
+      content: "🍔 🍔 🍔 🍔 🍔 🍔 🍔 🍔 🍔 🍔";
+      position: fixed;
+      top: -10%;
+      left: -10%;
+      width: 120%;
+      height: 120%;
+      font-size: 3rem;
+      opacity: 0.12;
+      transform: rotate(-12deg);
+      pointer-events: none;
+      line-height: 4.5rem;
+      white-space: pre-wrap;
+      z-index: 0;
+    }
+
+    /* Burger of the Day chalkboard sign */
+    .burger-sign {
+      position: fixed;
+      top: 8%;
+      left: 50%;
+      transform: translateX(-50%) rotate(-3deg);
+      background: #1f1f1f;
+      color: #f5f5f5;
+      padding: 16px 22px;
+      border-radius: 6px;
+      width: 260px;
+      text-align: center;
+      font-family: 'Trebuchet MS', cursive;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.35);
+      z-index: 1;
+      border: 4px solid #3a3a3a;
+    }
+
+    .burger-sign::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 0);
+      background-size: 6px 6px;
+      pointer-events: none;
+    }
+
+    .sign-title {
+      font-size: 1.1rem;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+      color: #ffb6c1;
+    }
+
+    .sign-name {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
+    .sign-desc {
+      font-size: 0.95rem;
+      opacity: 0.9;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 40px;
+      width: 90%;
+      max-width: 440px;
+      text-align: center;
+      box-shadow: 0 15px 30px rgba(0,0,0,0.25);
+      position: relative;
+      z-index: 2;
+    }
+
+    h1 { color: #d62828; margin-bottom: 10px; }
+    p { color: #333; font-size: 1.1rem; margin: 8px 0; }
+    .burger { font-size: 3.2rem; margin: 10px 0; }
+
+    .buttons {
+      margin-top: 24px;
+      height: 80px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    button {
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: transform 0.15s ease;
+      user-select: none;
+    }
+
+    #yes {
+      background-color: #ff4d6d;
+      color: white;
+      font-size: 1.12rem;
+      padding: 12px 22px;
+    }
+
+    #yes:hover { transform: scale(1.06); }
+
+    #no {
+      position: fixed;
+      left: 50%;
+      top: 72%;
+      transform: translate(-50%, -50%);
+      background-color: #d3d3d3;
+      color: #333;
+      font-size: 0.65rem;
+      padding: 5px 9px;
+      z-index: 3;
+      white-space: nowrap;
+    }
+
+    .message {
+      margin-top: 18px;
+      font-weight: bold;
+      color: #6a040f;
+      min-height: 32px;
+    }
+
+    .audioHint {
+      margin-top: 10px;
+      font-size: 0.9rem;
+      color: #555;
+    }
+
+    .heart {
+      position: fixed;
+      font-size: 1.5rem;
+      animation: floatUp 2.5s ease forwards;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    @keyframes floatUp {
+      0% { opacity: 1; transform: translateY(0) scale(1); }
+      100% { opacity: 0; transform: translateY(-140px) scale(1.8); }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="burger-sign">
+    <div class="sign-title">Burger of the Day</div>
+    <div class="sign-name">“Goat Got Your Cilantro”</div>
+    <div class="sign-desc">Goat Cheese & Cilantro</div>
+  </div>
+
+  <div class="card">
+    <div class="burger">🍔💕</div>
+    <h1>Renée 💖</h1>
+    <p>In the spirit of love and more importantly Bob's Burgers…</p>
+    <p><strong>Will you be my Valentine?</strong></p>
+
+    <div class="buttons">
+      <button id="yes">YES (Louise would approve)</button>
+    </div>
+
+    <div class="message" id="message"></div>
+    <div class="audioHint" id="audioHint">🔊 Tap/click anywhere to enable sound</div>
+  </div>
+
+  <button id="no">No (Linda is judging you)</button>
+
+  <script>
+    const noBtn = document.getElementById("no");
+    const yesBtn = document.getElementById("yes");
+    const message = document.getElementById("message");
+    const audioHint = document.getElementById("audioHint");
+
+    let audioEnabled = false;
+    let audioCtx = null;
+
+    function enableAudio() {
+      if (audioEnabled) return;
+      audioEnabled = true;
+      audioHint.textContent = "🔊 Sound enabled";
+      setTimeout(() => audioHint.style.display = "none", 1200);
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    function beep(freq, duration = 0.06) {
+      if (!audioEnabled || !audioCtx) return;
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      o.type = "square";
+      o.frequency.value = freq;
+      g.gain.value = 0.04;
+      o.connect(g);
+      g.connect(audioCtx.destination);
+      o.start();
+      o.stop(audioCtx.currentTime + duration);
+    }
+
+    function burgerJingle() {
+      [392, 440, 523, 440, 392].forEach((n, i) =>
+        setTimeout(() => beep(n), i * 90)
+      );
+    }
+
+    document.addEventListener("pointerdown", enableAudio, { once: true });
+
+    let x = window.innerWidth * 0.5;
+    let y = window.innerHeight * 0.72;
+    let vx = (Math.random() > 0.5 ? 1 : -1) * 6;
+    let vy = (Math.random() > 0.5 ? 1 : -1) * 5;
+    let paused = false;
+
+    noBtn.addEventListener("mouseenter", () => {
+      paused = true;
+      setTimeout(() => paused = false, 280);
+    });
+
+    let pointer = { x: -9999, y: -9999 };
+    document.addEventListener("pointermove", e => {
+      pointer.x = e.clientX;
+      pointer.y = e.clientY;
+    });
+
+    function clamp() {
+      const r = noBtn.getBoundingClientRect();
+      if (x < 8 || x > window.innerWidth - r.width - 8) vx *= -1;
+      if (y < 8 || y > window.innerHeight - r.height - 8) vy *= -1;
+    }
+
+    function animateNo() {
+      if (!paused) {
+        const r = noBtn.getBoundingClientRect();
+        const dist = Math.hypot(
+          r.left + r.width / 2 - pointer.x,
+          r.top + r.height / 2 - pointer.y
+        );
+        const slow = dist < 120 ? 0.35 : 1;
+        x += vx * slow;
+        y += vy * slow;
+
+        if (Math.random() < 0.02) {
+          vx += (Math.random() - 0.5) * 1.1;
+          vy += (Math.random() - 0.5) * 1.1;
+        }
+
+        vx = Math.max(-8, Math.min(8, vx));
+        vy = Math.max(-7, Math.min(7, vy));
+        clamp();
+      }
+      noBtn.style.left = x + "px";
+      noBtn.style.top = y + "px";
+      requestAnimationFrame(animateNo);
+    }
+    animateNo();
+
+    noBtn.addEventListener("click", () => {
+      enableAudio();
+      burgerJingle();
+      message.textContent =
+        "OKAY WOW. I’m impressed you clicked this… but still wrong. Try again 😏🍔";
+    });
+
+    yesBtn.addEventListener("click", () => {
+      enableAudio();
+      burgerJingle();
+      message.textContent =
+        "YAY 🥰 This is better than a Burger of the Day. You’re my Valentine 💕🍔";
+      for (let i = 0; i < 28; i++) {
+        const h = document.createElement("div");
+        h.className = "heart";
+        h.textContent = Math.random() < 0.5 ? "💖" : "💕";
+        h.style.left = Math.random() * window.innerWidth + "px";
+        h.style.top = window.innerHeight + "px";
+        document.body.appendChild(h);
+        setTimeout(() => h.remove(), 2500);
+      }
+    });
+  </script>
+
+</body>
+</html>
+
